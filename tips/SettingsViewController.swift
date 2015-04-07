@@ -12,18 +12,18 @@ class SettingsViewController: UIViewController {
     
     @IBOutlet weak var tipSegment: UISegmentedControl!
     
+    let model = TipModel.instance
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        tipSegment.selectedSegmentIndex = DataStore.getDefaultTip()
-    }
-    
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
+        tipSegment.selectedSegmentIndex = model.defaultTipPercentIndex
     }
     
     @IBAction func onEditingChanged(sender: AnyObject) {
-        DataStore.setDefaultTip(tipSegment.selectedSegmentIndex)
+        model.defaultTipPercentIndex = tipSegment.selectedSegmentIndex
+        model.tipPercentIndex = tipSegment.selectedSegmentIndex
+        model.save()
     }
     
     @IBAction func onDone(sender: AnyObject) {

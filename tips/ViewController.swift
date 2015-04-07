@@ -9,42 +9,60 @@
 import UIKit
 
 class ViewController: UIViewController {
+    
     @IBOutlet weak var tipControl: UISegmentedControl!
-
     @IBOutlet weak var billField: UITextField!
     @IBOutlet weak var tipLabel: UILabel!
     @IBOutlet weak var totalLabel: UILabel!
+    @IBOutlet weak var dataPanel: UIView!
+    
+    let model = TipModel.instance
+    var wasEmpty = true
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        tipLabel.text = "$0.00"
-        totalLabel.text = "$0.00"
+        NSNotificationCenter.defaultCenter().addObserver(self, selector:"syncFromModel", name: UIApplicationWillEnterForegroundNotification, object: nil)
     }
     
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
-        tipControl.selectedSegmentIndex = DataStore.getDefaultTip()
-    }
 
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
+        billField.becomeFirstResponder()
+        syncFromModel()
     }
 
     @IBAction func onEditingChanged(sender: AnyObject) {
-        var tipPercentages = [0.18, 0.2, 0.22]
-        var tipPercentage = tipPercentages[tipControl.selectedSegmentIndex]
-        
-        var billAmount = (billField.text as NSString).doubleValue
-        var tip = billAmount * tipPercentage
-        var total = billAmount + tip
-        
-        tipLabel.text = String(format: "$%.2f", tip)
-        totalLabel.text = String(format: "$%.2f", total)
+        model.tipPercentIndex = tipControl.selectedSegmentIndex
+        model.billText = billField.text
+
+        model.save()
+        syncFromModel()
     }
 
     @IBAction func onTap(sender: AnyObject) {
         view.endEditing(true)
+    }
+    
+    func syncFromModel() {
+        let formatter = NSNumberFormatter()
+        formatter.numberStyle = NSNumberFormatterStyle.CurrencyStyle
+        
+        billField.text = model.billText
+        tipLabel.text = formatter.stringFromNumber(model.tip)
+        totalLabel.text = formatter.stringFromNumber(model.total)
+        tipControl.selectedSegmentIndex = model.tipPercentIndex
+        
+        if model.billText == "" {
+            wasEmpty = true
+            UIView.animateWithDuration(1, animations: {
+                self.dataPanel.alpha = 0
+            })
+        } else if wasEmpty {
+            wasEmpty = false
+            UIView.animateWithDuration(0.5, animations: {
+                self.dataPanel.alpha = 1
+            })
+        }
     }
 }
 
